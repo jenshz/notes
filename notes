@@ -89,5 +89,7 @@ when "today"
   open_file(today)
 when "commit"
   puts %x[git add . && git commit -a -m"#{Time.now}"]
+when "search"
+  ARGV.shift
+  system("ag -i -S '#{ARGV.join("' '")}'")
 end
-
