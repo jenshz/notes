@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Replace this with your favorite editor.
+Editor="subl"
+
 require 'optparse'
 require 'fileutils'
 
@@ -33,7 +36,7 @@ def initialize_file(path)
 end
 
 def edit_file(path)
-  %x[subl #{path}]
+  %x[#{Editor} #{path}]
 end
 
 def sorted_list
@@ -45,10 +48,28 @@ def sorted_list
   dates.sort
 end
 
+$grip = false
+if ARGV.first == "grip"
+  ARGV.shift
+  $grip = true
+end
+
 cmd = ARGV.first
 
 if cmd.nil? or cmd == "0"
   cmd = "today"
+end
+
+def grip_file(file)
+  puts %x[grip #{file}]
+end
+
+def open_file(file)
+  if $grip
+    grip_file(file)
+  else
+    edit_file(file)
+  end
 end
 
 if cmd.is_integer?
@@ -57,7 +78,7 @@ if cmd.is_integer?
   if date.nil?
     puts "Previous entry not found!"
   else
-    edit_file(file_path(date))
+    open_file(file_path(date))
   end
 end
 
@@ -65,9 +86,8 @@ case cmd
 when "today"
   today = file_path
   initialize_file(today) unless File.exists?(today)
-  edit_file(today)
-when "grip"
-  puts %x[grip #{file_path}]
+  open_file(today)
 when "commit"
   puts %x[git add . && git commit -a -m"#{Time.now}"]
 end
+

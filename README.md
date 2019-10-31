@@ -18,4 +18,6 @@ Open yesterdays notes (e.g. the latest notes before today):
 Open some time earlier (e.g. 2 days ago):
     ./notes -2
 
-More options to come later ...
+Open the current entry in "grip"
+    ./notes grip
+
