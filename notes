@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+class String
+  def is_integer?
+    self.to_i.to_s == self
+  end
+end
+
+def file_path(t = Time.now)
+  "%d/%d-%02d-%02d.md" % [t.year, t.year, t.month, t.day]
+end
+
+def initialize_file(path)
+  dirname = File.dirname(path)
+  unless File.directory?(dirname)
+    FileUtils.mkdir_p(dirname)
+  end
+
+  File.open(path, "w") do |f|
+    t = Time.now
+    f.puts "# %d-%02d-%02d" % [t.year, t.month, t.day]
+    f.puts """
+## Tasks:
+* 
+
+## Notes:
+
+"""
+  end
+end
+
+def edit_file(path)
+  %x[subl #{path}]
+end
+
+def sorted_list
+  dates = Dir.glob("*/*.md").map do |f|
+    m = /[0-9]{4}\/([0-9]{4})-([0-9]{2})-([0-9]{2})\.md/.match(f)
+    next if m.nil?
+    Time.new(m[1].to_i, m[2].to_i, m[3].to_i)
+  end.compact
+  dates.sort
+end
+
+cmd = ARGV.first
+
+if cmd.nil? or cmd == "0"
+  cmd = "today"
+end
+
+if cmd.is_integer?
+  extra_minus = File.exists?(file_path) ? -1 : 0
+  date = sorted_list[cmd.to_i + extra_minus]
+  if date.nil?
+    puts "Previous entry not found!"
+  else
+    edit_file(file_path(date))
+  end
+end
+
+case cmd
+when "today"
+  today = file_path
+  initialize_file(today) unless File.exists?(today)
+  edit_file(today)
+when "grip"
+  puts %x[grip #{file_path}]
+when "commit"
+  puts %x[git add . && git commit -a -m"#{Time.now}"]
+end
